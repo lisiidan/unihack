@@ -70,6 +70,26 @@ Inside UNDERFLOW select the camera TOP:
 Camera OFF = automatic visual preview. Camera ON = movement-driven control,
 even with no gateway connected.
 
+## Visual refresh — pulling changes
+
+If you already installed the first version of this branch, refresh the source files
+in PowerShell from the repository root:
+
+    git pull --ff-only
+
+Then run the same installer again in TouchDesigner Python Textport:
+
+    exec(open(r"D:\unihack\touchdesigner\install.py", encoding="utf-8").read())
+
+Important: **the installer replaces /project1/UNDERFLOW**, so select your
+webcam and turn it on again. Save the .toe afterwards.
+
+The refreshed shader adds five luminous currents, a soft atmospheric glow,
+a larger motion vortex, outward-moving rings and coherent particle
+displacement. Camera input now smooths position and energy to reduce
+flicker; this remains a procedural visual field, not fluid simulation.
+If the camera is off, a moving synthetic presence demonstrates the effect.
+
 ## 5. Known limits
 
 - No real sensor feed for water/noise/bioparticles; the visuals use
