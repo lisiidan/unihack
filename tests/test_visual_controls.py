@@ -4,7 +4,7 @@ import json
 import unittest
 from pathlib import Path
 
-from touchdesigner.underflow_controller import MotionTracker, normalized, parse_packet
+from touchdesigner.underflow_controller import (MotionTracker, normalized, parse_packet, parse_scene_packet, format_hud, data_time_label)
 
 
 class VisualControlsTests(unittest.TestCase):
@@ -31,6 +31,53 @@ class VisualControlsTests(unittest.TestCase):
         self.assertIsNone(packet["air"])
         self.assertIsNone(packet["haze"])
         self.assertIsNone(packet["wind"])
+
+    def test_real_packet_metadata_and_hud(self):
+        raw = json.dumps({
+            "schema_version": 1, "mode": "live",
+            "visuals": {"air_severity": 0.62, "haze": 0.42, "wind": 0.15},
+            "weather": {
+                "wind_kmh": 6.5, "precipitation_mm": 1.0,
+                "observed_at": "2026-11-13T18:00:00+00:00"
+            },
+            "air": {
+                "european_aqi": 62, "observed_at": "2026-11-13T17:00Z"
+            }
+        })
+        packet = parse_scene_packet(raw)
+        self.assertEqual(packet["rain"], 0.25)
+        self.assertEqual(packet["wind_kmh"], 6.5)
+        self.assertIn("LIVE / MODELED", format_hud(packet, 3))
+        self.assertIn("AIR AQI 62", format_hud(packet, 3))
+        self.assertIn("RAIN 1.0 mm", format_hud(packet, 3))
+        self.assertIn("STALE / LAST PACKET", format_hud(packet, 901))
+        self.assertEqual(data_time_label("2026-11-13T17:00Z"),
+                         "13 Nov 17:00 UTC")
+
+    def test_demo_is_not_labeled_live(self):
+        packet = parse_scene_packet(json.dumps({
+            "schema_version": 1, "mode": "demo",
+            "visuals": {"air_severity": 0.5},
+            "weather": None, "air": None,
+        }))
+        hud = format_hud(packet, 0)
+        self.assertIn("DEMO / SYNTHETIC", hud)
+        self.assertNotIn("LIVE / MODELED", hud)
+        self.assertIn("WIND --", hud)
+        self.assertIsNone(packet["rain"])
+        self.assertIn("WAITING FOR DATA", format_hud(None, 100))
+
+    def test_invalid_and_missing_readings(self):
+        packet = parse_scene_packet(json.dumps({
+            "schema_version": 1, "mode": "live",
+            "visuals": {},
+            "weather": {"wind_kmh": "nan", "precipitation_mm": None},
+            "air": {"european_aqi": "bad", "observed_at": "not-a-date"},
+        }))
+        self.assertIsNone(packet["wind_kmh"])
+        self.assertIsNone(packet["rain"])
+        self.assertIn("AIR AQI --", format_hud(packet, 0))
+        self.assertEqual(data_time_label("not-a-date"), "N/A")
 
     def test_rejects_wrong_versions(self):
         for raw in ["{}", "[]", '{"schema_version":2,"mode":"demo","visuals":{}}',
@@ -61,13 +108,16 @@ class VisualControlsTests(unittest.TestCase):
         controller = (root / "touchdesigner/underflow_controller.py").read_text(encoding="utf-8")
         self.assertIn("importlib.reload(underflow_controller)", installer)
         self.assertIn("self.frame_no % 2", controller)
+        self.assertIn('scene.create(textTOP, "data_label")', installer)
+        self.assertIn("glsl.par.vec = 6", installer)
 
     def test_shader_has_required_td_contract(self):
         shader = (Path(__file__).resolve().parents[1] /
                   "touchdesigner/shaders/underflow.frag").read_text(encoding="utf-8")
         self.assertFalse(any(line.lstrip().startswith("#version") for line in shader.splitlines()))
         for token in ("uniform vec4 uState;", "uniform vec4 uPerson;",
-                      "TDOutputSwizzle", "fragColor"):
+                      "uniform vec4 uEnv;", "uniform vec4 uTrail0;",
+                      "begaCenter", "TDOutputSwizzle", "fragColor"):
             self.assertIn(token, shader)
 
 
