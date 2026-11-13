@@ -64,9 +64,10 @@ glsl.par.pixeldat = shader_dat.path
 output = scene.create(nullTOP, "OUT")
 glsl.outputConnectors[0].connect(output)
 output.nodeX, output.nodeY = 200, -150
-output.viewerActive = True
-scene.par.opviewer = output.path
-scene.par.viewer = True
+try:
+    output.viewerActive = True
+except AttributeError:
+    pass
 
 # An independent Python process supplies environment JSON.
 udp = scene.create(udpinDAT, "environment_udp")
@@ -94,9 +95,13 @@ small.par.resolutionh = 36
 frame_execute = scene.create(executeDAT, "frame_update")
 frame_execute.nodeX, frame_execute.nodeY = 400, -150
 frame_execute.par.framestart = False
-frame_execute.text = '''from underflow_controller import step
-
-def onFrameStart(frame):
+frame_execute.text = '''def onFrameStart(frame):
+    import sys
+    from pathlib import Path
+    scripts = str(Path(project.folder) / 'touchdesigner')
+    if scripts not in sys.path:
+        sys.path.insert(0, scripts)
+    from underflow_controller import step
     step(me.parent())
     return
 '''
