@@ -50,7 +50,8 @@ class VisualControlsTests(unittest.TestCase):
         self.assertGreater(motion.strength, 0.0)
         self.assertGreater(motion.x, 0.5)
         self.assertGreater(motion.y, 0.5)
-        self.assertLess(tracker.update(changed).strength, motion.strength)
+        prior_strength = motion.strength
+        self.assertLess(tracker.update(changed).strength, prior_strength)
 
     def test_touchdesigner_installer_parses_without_runtime(self):
         root = Path(__file__).resolve().parents[1]
