@@ -43,6 +43,7 @@ glsl.par.mode = "vertexpixel"
 glsl.par.outputresolution = "custom"
 glsl.par.resolutionw = 1280
 glsl.par.resolutionh = 720
+glsl.par.vec = 2  # expand the Vector uniform sequence to two vec4 entries
 glsl.par.vec0name = "uState"
 glsl.par.vec0valuex = 0.0
 glsl.par.vec0valuey = 0.38
