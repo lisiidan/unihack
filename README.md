@@ -19,6 +19,19 @@ The space beneath a bridge becomes a living expression of the city's normally in
 
 TouchDesigner project is NOT built yet. This repository currently contains the gateway, a wire format, unit tests and setup notes.
 
+## Visual prototype (Step 2)
+
+This branch includes a TouchDesigner scene **installer**, a GLSL particle/river
+shader, camera motion tracking, and environment-driven color controls.
+The .toe binary is not generated until you run the installer inside TouchDesigner.
+
+1. Save a new .toe inside the repository root.
+2. From TouchDesigner's Python Textport execute touchdesigner/install.py.
+3. Start the Python gateway in demo or live mode.
+4. View the /project1/UNDERFLOW/OUT TOP and optionally enable the webcam.
+
+Complete instructions: [docs/visual-prototype.md](docs/visual-prototype.md).
+
 ## Quick start
 
 Requires Python 3.10+. No pip install needed. From repository root:
