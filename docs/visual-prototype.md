@@ -90,6 +90,54 @@ displacement. Camera input now smooths position and energy to reduce
 flicker; this remains a procedural visual field, not fluid simulation.
 If the camera is off, a moving synthetic presence demonstrates the effect.
 
+## Timișoara city visual (current branch)
+
+The primary visual is now a luminous, winding depiction of Canalul Bega:
+shorelines, current lines, water reflections, and three abstract crossing
+signals. **This is an artistic schematic, NOT an OSM/GIS river map** and the
+crossings do not represent surveyed bridge locations.
+
+The output also contains two Text TOPs:
+- city_title: TIMIȘOARA / UNDERFLOW + CANALUL BEGA.
+- data_label: LIVE / MODELED, DEMO / SYNTHETIC, or STALE, European AQI,
+  wind, rainfall and the data provider's *reading time* in UTC.
+
+An absent measurement is displayed as "--", never fabricated as zero.
+Open-Meteo air quality is a CAMS model, not a sensor on that bridge.
+When the gateway has been silent over 15 minutes, the label says STALE
+and the visuals transition back toward an artistic baseline.
+
+The user motion effect keeps up to three events for several seconds,
+so gestures leave expanding luminous rings in the city artwork.
+This is CPU-managed event history, not a true GPU feedback buffer.
+
+### Update an existing TouchDesigner installation
+
+From the folder containing README.md, with this feature branch checked out:
+
+    git pull --ff-only
+
+Then in TouchDesigner Python Textport, using the actual local path:
+
+    exec(open(r"D:\unihack\touchdesigner\install.py", encoding="utf-8").read())
+
+The installer destroys and reconstructs /project1/UNDERFLOW.
+It attempts to preserve the chosen camera device and Active setting.
+Save a backup of manually edited nodes first. Re-save the .toe afterwards.
+
+To feed real modeled city values, from the repo root:
+
+    py -3 -m gateway.main --mode live --interval 300 --stdout
+
+Important: Demo mode changes the labels to DEMO / SYNTHETIC. If no gateway
+is running the display says WAITING FOR DATA, not LIVE. Use only one gateway
+process at a time (demo OR live) sending to UDP port 7001.
+
+If the two Text TOPs are not rendered correctly, inspect city_title,
+data_label and their output parameters. Check the GLSL TOP Info DAT
+for shader compilation errors. Tested in GitHub CI for Python behavior,
+but requires local TouchDesigner runtime validation.
+
 ## 5. Known limits
 
 - No real sensor feed for water/noise/bioparticles; the visuals use
