@@ -90,10 +90,11 @@ def data_time_label(value) -> str:
 
 
 def format_hud(packet: dict | None, age: float) -> str:
+    """Compact right-column overlay; never imply a fake sensor is live."""
     if packet is None:
-        return ("WAITING FOR DATA  |  ARTISTIC BASELINE\n"
-                "AIR AQI --  /  WIND --  /  RAIN --\n"
-                "Run: python -m gateway.main --mode live")
+        return ("WAITING FOR DATA\n"
+                "AIR AQI --   WIND --   RAIN --\n"
+                "START PYTHON GATEWAY ON UDP :7001")
     stale = age > 900.0
     label = ("STALE / LAST PACKET" if stale else
              "DEMO / SYNTHETIC" if packet["mode"] == "demo" else
@@ -102,13 +103,12 @@ def format_hud(packet: dict | None, age: float) -> str:
     wind = f'{packet["wind_kmh"]:.0f}' if packet["wind_kmh"] is not None else "--"
     rain = f'{packet["rain_mm"]:.1f}' if packet["rain_mm"] is not None else "--"
     return (
-        f"{label}   |   AIR AQI {aqi}   |   WIND {wind} km/h   |   RAIN {rain} mm\n"
-        f"AIR {data_time_label(packet['air_time'])}   /   "
+        f"{label}\n"
+        f"AIR AQI {aqi}    WIND {wind} km/h    RAIN {rain} mm\n"
+        f"AIR {data_time_label(packet['air_time'])}\n"
         f"WEATHER {data_time_label(packet['weather_time'])}\n"
-        "Open-Meteo / CAMS model; visual interpretation, not a bridge sensor"
+        "SOURCE: OPEN-METEO / CAMS"
     )
-
-
 
 @dataclass
 class Motion:
