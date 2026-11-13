@@ -85,53 +85,65 @@ shader_dat.text = shader_file.read_text(encoding="utf-8")
 shader_dat.nodeX, shader_dat.nodeY = -230, -150
 glsl.par.pixeldat = shader_dat.path
 
-# Two minimal museum labels composited OVER the live visual.
-# Text TOP's Comp Over Input avoids the need for an additional Composite TOP.
-title = scene.create(textTOP, "city_title")
-title.nodeX, title.nodeY = 200, -150
-glsl.outputConnectors[0].connect(title)
-title.par.compoverinput = True
-title.par.operand = "over"
-title.par.text = "TIMIȘOARA  /  UNDERFLOW\nCANALUL BEGA · THE INVISIBLE CITY"
-title.par.outputresolution = "useinput"
-title.par.fontautosize = "nofit"
-title.par.fontsizex = 25
-title.par.keepfontratio = True
-title.par.alignx = "left"
-title.par.aligny = "top"
-title.par.positionunit = "fraction"
-title.par.position1 = 0.045
-title.par.position2 = 0.94
-title.par.fontcolorr = 0.84
-title.par.fontcolorg = 0.96
-title.par.fontcolorb = 0.97
-title.par.fontalpha = 0.94
-title.par.bgalpha = 0.0
+# Text TOP composition: Add is intentional. In the original version "Over"
+# could place the opaque GLSL input ABOVE the text, hiding all labels.
+# By adding non-transparent glyphs over the dark atlas, HUD remains visible.
+def make_hud(name, previous, content, xpos, ypos, size, color, bold=False):
+    label = scene.create(textTOP, name)
+    previous.outputConnectors[0].connect(label)
+    label.par.compoverinput = True
+    label.par.operand = "add"
+    label.par.outputresolution = "useinput"
+    label.par.text = content
+    label.par.fontautosize = "nofit"
+    label.par.fontsizex = size
+    label.par.keepfontratio = True
+    label.par.alignx = "left"
+    label.par.aligny = "top"
+    label.par.positionunit = "fraction"
+    label.par.position1 = xpos
+    label.par.position2 = ypos
+    label.par.fontcolorr = color[0]
+    label.par.fontcolorg = color[1]
+    label.par.fontcolorb = color[2]
+    label.par.fontalpha = 1.0
+    label.par.bgalpha = 0.0
+    label.par.bold = bool(bold)
+    return label
 
-data_label = scene.create(textTOP, "data_label")
-data_label.nodeX, data_label.nodeY = 380, -150
-title.outputConnectors[0].connect(data_label)
-data_label.par.compoverinput = True
-data_label.par.operand = "over"
-data_label.par.text = "WAITING FOR DATA  /  ARTISTIC BASELINE"
-data_label.par.outputresolution = "useinput"
-data_label.par.fontautosize = "nofit"
-data_label.par.fontsizex = 14
-data_label.par.keepfontratio = True
-data_label.par.alignx = "left"
-data_label.par.aligny = "top"
-data_label.par.positionunit = "fraction"
-data_label.par.position1 = 0.045
-data_label.par.position2 = 0.80
-data_label.par.fontcolorr = 0.64
-data_label.par.fontcolorg = 0.83
-data_label.par.fontcolorb = 0.87
-data_label.par.fontalpha = 0.96
-data_label.par.bgalpha = 0.0
+
+title = make_hud(
+    "city_title", glsl, "TIMIȘOARA", 0.052, 0.960, 54,
+    (0.88, 0.96, 1.0), True
+)
+title.nodeX, title.nodeY = 195, -150
+
+subtitle = make_hud(
+    "city_subtitle", title,
+    "UNDERFLOW   /   BEGA, THE INVISIBLE CITY",
+    0.054, 0.842, 19, (0.28, 0.82, 0.88)
+)
+subtitle.nodeX, subtitle.nodeY = 380, -150
+
+data_label = make_hud(
+    "data_label", subtitle,
+    "WAITING FOR DATA\nAIR AQI --   WIND -- km/h   RAIN --",
+    0.580, 0.954, 16, (0.77, 0.90, 0.97)
+)
+data_label.nodeX, data_label.nodeY = 565, -150
+
+footer_label = make_hud(
+    "footer_label", data_label,
+    "45.7489 N  /  21.2087 E    |    CANALUL BEGA    |    "
+    "ARTISTIC CITY SCHEMATIC, NOT A STREET MAP",
+    0.054, 0.076, 13, (0.36, 0.65, 0.74)
+)
+footer_label.nodeX, footer_label.nodeY = 750, -150
 
 output = scene.create(nullTOP, "OUT")
-data_label.outputConnectors[0].connect(output)
-output.nodeX, output.nodeY = 570, -150
+footer_label.outputConnectors[0].connect(output)
+output.nodeX, output.nodeY = 940, -150
+
 try:
     output.viewerActive = True
 except AttributeError:
