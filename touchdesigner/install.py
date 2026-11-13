@@ -1,4 +1,4 @@
-"""Create the UNDERFLOW TouchDesigner network in a new .toe project.
+r"""Create the UNDERFLOW TouchDesigner network in a new .toe project.
 
 Run from TouchDesigner's Python Textport (NOT from CPython):
     exec(open(r"D:\path\to\unihack\touchdesigner\install.py", encoding="utf-8").read())
