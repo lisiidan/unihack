@@ -100,6 +100,18 @@ class VisualControlsTests(unittest.TestCase):
         prior_strength = motion.strength
         self.assertLess(tracker.update(changed).strength, prior_strength)
 
+    def test_hud_layout_is_compact(self):
+        sample = parse_scene_packet(json.dumps({
+            "schema_version": 1, "mode": "live", "visuals": {},
+            "air": {"european_aqi": 33, "observed_at": "2026-11-13T12:00Z"},
+            "weather": {"wind_kmh": 4, "precipitation_mm": 0,
+                        "observed_at": "2026-11-13T13:00Z"},
+        }))
+        lines = format_hud(sample, 0).splitlines()
+        self.assertEqual(len(lines), 5)
+        self.assertTrue(all(len(line) < 54 for line in lines))
+        self.assertIn("SOURCE: OPEN-METEO / CAMS", lines[-1])
+
     def test_touchdesigner_installer_parses_without_runtime(self):
         root = Path(__file__).resolve().parents[1]
         for file in ("touchdesigner/install.py", "touchdesigner/underflow_controller.py"):
@@ -108,7 +120,10 @@ class VisualControlsTests(unittest.TestCase):
         controller = (root / "touchdesigner/underflow_controller.py").read_text(encoding="utf-8")
         self.assertIn("importlib.reload(underflow_controller)", installer)
         self.assertIn("self.frame_no % 2", controller)
-        self.assertIn('scene.create(textTOP, "data_label")', installer)
+        self.assertIn('make_hud(', installer)
+        self.assertIn('"data_label", subtitle,', installer)
+        self.assertIn('label.par.operand = "add"', installer)
+        self.assertIn('"city_title", glsl, "TIMIȘOARA"', installer)
         self.assertIn("glsl.par.vec = 6", installer)
 
     def test_shader_has_required_td_contract(self):
@@ -117,10 +132,11 @@ class VisualControlsTests(unittest.TestCase):
         self.assertFalse(any(line.lstrip().startswith("#version") for line in shader.splitlines()))
         # hash21 is defined for vec2, not for a scalar (TD GLSL compiler error).
         self.assertNotIn("hash21(floor(", shader)
-        self.assertIn("hash21(vec2(floor(uv.x * 95.0), 17.0))", shader)
+        self.assertIn("hash21(vec2(floor(uv.x * 94.0), 17.0))", shader)
         for token in ("uniform vec4 uState;", "uniform vec4 uPerson;",
                       "uniform vec4 uEnv;", "uniform vec4 uTrail0;",
-                      "begaCenter", "TDOutputSwizzle", "fragColor"):
+                      "riverY", "cityZone", "riverMask", "traceEcho",
+                      "TDOutputSwizzle", "fragColor"):
             self.assertIn(token, shader)
 
 
