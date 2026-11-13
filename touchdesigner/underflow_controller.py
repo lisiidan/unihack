@@ -101,14 +101,17 @@ class MotionTracker:
         self.previous = current
         fraction = count / (w * h)
         if fraction < self.minimum_ratio:
-            self.motion.strength *= 0.65
+            # Smooth release: sudden drops to zero made the old repulsion pop.
+            self.motion.strength *= 0.84
         else:
             target_x = sum_x / count / max(1, w - 1)
             # Video orientation is installation-dependent; flip here if needed.
             target_y = 1.0 - sum_y / count / max(1, h - 1)
-            self.motion.x += 0.35 * (target_x - self.motion.x)
-            self.motion.y += 0.35 * (target_y - self.motion.y)
-            self.motion.strength = clamp(fraction * 8.0)
+            # Dampen centroid noise; smoother stream bends and rings.
+            self.motion.x += 0.20 * (target_x - self.motion.x)
+            self.motion.y += 0.20 * (target_y - self.motion.y)
+            target_strength = clamp(fraction * 9.0)
+            self.motion.strength += 0.40 * (target_strength - self.motion.strength)
         return self.motion
 
 
@@ -185,13 +188,15 @@ class Runtime:
         if has_camera:
             motion = self.tracker.motion
             x, y = motion.x, motion.y
-            # Fade smoothly after the person stops moving.
-            strength = motion.strength * clamp(1.0 - (now - self.last_motion_at) / 3.0)
+            # Energy decays smoothly; rings move outward after the gesture.
+            strength = motion.strength
+            since_motion = clamp(now - self.last_motion_at, 0.0, 4.0)
         else:
             # Explicit motion preview when camera is disabled.
             x = 0.5 + 0.23 * math.sin(t * 0.4)
             y = 0.52 + 0.18 * math.cos(t * 0.25)
-            strength = 0.72
+            strength = 0.88
+            since_motion = t % 3.2
 
         shader = comp.op("environment_glsl")
         if shader is None:
@@ -203,7 +208,7 @@ class Runtime:
         shader.par.vec1valuex = x
         shader.par.vec1valuey = y
         shader.par.vec1valuez = strength
-        shader.par.vec1valuew = 0.0
+        shader.par.vec1valuew = since_motion
 
 
 def reset(path: str) -> None:
