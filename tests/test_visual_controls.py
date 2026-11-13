@@ -115,6 +115,9 @@ class VisualControlsTests(unittest.TestCase):
         shader = (Path(__file__).resolve().parents[1] /
                   "touchdesigner/shaders/underflow.frag").read_text(encoding="utf-8")
         self.assertFalse(any(line.lstrip().startswith("#version") for line in shader.splitlines()))
+        # hash21 is defined for vec2, not for a scalar (TD GLSL compiler error).
+        self.assertNotIn("hash21(floor(", shader)
+        self.assertIn("hash21(vec2(floor(uv.x * 95.0), 17.0))", shader)
         for token in ("uniform vec4 uState;", "uniform vec4 uPerson;",
                       "uniform vec4 uEnv;", "uniform vec4 uTrail0;",
                       "begaCenter", "TDOutputSwizzle", "fragColor"):
