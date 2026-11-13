@@ -163,7 +163,7 @@ void main() {
     // Rain uses actual precipitation from the packet when available.
     // Vertical glimmers + intensified ripples, no fabricated sensor values.
     float rainColumn = pow(0.5 + 0.5 *
-                          sin(uv.x * 270.0 + hash21(floor(uv.x * 95.0)) * 25.0
+                          sin(uv.x * 270.0 + hash21(vec2(floor(uv.x * 95.0), 17.0)) * 25.0
                           + t * 1.2), 12.0);
     float fall = 0.5 + 0.5 * sin(uv.y * 45.0 + t * 11.0);
     col += glintColor * rain * rainColumn * fall * 0.18;
