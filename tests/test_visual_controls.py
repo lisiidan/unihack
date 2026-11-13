@@ -48,7 +48,7 @@ class VisualControlsTests(unittest.TestCase):
         self.assertEqual(tracker.update(empty).strength, 0.0)
         motion = tracker.update(changed)
         self.assertGreater(motion.strength, 0.0)
-        self.assertGreater(motion.x, 0.5)
+        self.assertGreater(motion.x, 0.58)  # First update reacts without a long lag.
         self.assertGreater(motion.y, 0.5)
         prior_strength = motion.strength
         self.assertLess(tracker.update(changed).strength, prior_strength)
@@ -57,6 +57,10 @@ class VisualControlsTests(unittest.TestCase):
         root = Path(__file__).resolve().parents[1]
         for file in ("touchdesigner/install.py", "touchdesigner/underflow_controller.py"):
             ast.parse((root / file).read_text(encoding="utf-8"), filename=file)
+        installer = (root / "touchdesigner/install.py").read_text(encoding="utf-8")
+        controller = (root / "touchdesigner/underflow_controller.py").read_text(encoding="utf-8")
+        self.assertIn("importlib.reload(underflow_controller)", installer)
+        self.assertIn("self.frame_no % 2", controller)
 
     def test_shader_has_required_td_contract(self):
         shader = (Path(__file__).resolve().parents[1] /
