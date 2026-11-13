@@ -9,6 +9,7 @@ The installer replaces only /project1/UNDERFLOW, never other nodes.
 """
 from pathlib import Path
 import sys
+import importlib
 
 repo_root = Path(project.folder)
 source_dir = repo_root / "touchdesigner"
@@ -22,7 +23,10 @@ if not (shader_file.is_file() and controller_file.is_file()):
 if str(source_dir) not in sys.path:
     sys.path.insert(0, str(source_dir))
 
-from underflow_controller import reset
+import underflow_controller
+# Without reload, TouchDesigner keeps the old camera-tracking code in sys.modules.
+importlib.reload(underflow_controller)
+reset = underflow_controller.reset
 
 scene_root = op("/project1")
 if scene_root is None:
@@ -92,7 +96,7 @@ small.par.outputresolution = "custom"
 small.par.resolutionw = 64
 small.par.resolutionh = 36
 
-# Lightweight per-frame callback; camera sampling happens every 6th frame.
+# Lightweight per-frame callback; camera sampling happens every 2nd frame.
 frame_execute = scene.create(executeDAT, "frame_update")
 frame_execute.nodeX, frame_execute.nodeY = 400, -150
 frame_execute.par.framestart = False
