@@ -62,7 +62,7 @@ class MotionTracker:
     Detects motion, not the presence or count of people.
     """
 
-    def __init__(self, threshold: float = 0.12, minimum_ratio: float = 0.009):
+    def __init__(self, threshold: float = 0.10, minimum_ratio: float = 0.006):
         self.previous = None
         self.threshold = threshold
         self.minimum_ratio = minimum_ratio
@@ -72,7 +72,7 @@ class MotionTracker:
         """Accepts numpy HxWxC array or nested RGB lists; 0..1 values."""
         if frame is None:
             return self.motion
-        # Float conversion happens only on a 64x36 frame at about 10 Hz.
+        # Convert only a small 64x36 image; normally sampled at ~30 Hz.
         h = len(frame)
         w = len(frame[0]) if h else 0
         if not h or not w:
@@ -102,16 +102,16 @@ class MotionTracker:
         fraction = count / (w * h)
         if fraction < self.minimum_ratio:
             # Smooth release: sudden drops to zero made the old repulsion pop.
-            self.motion.strength *= 0.84
+            self.motion.strength *= 0.88
         else:
             target_x = sum_x / count / max(1, w - 1)
             # Video orientation is installation-dependent; flip here if needed.
             target_y = 1.0 - sum_y / count / max(1, h - 1)
-            # Dampen centroid noise; smoother stream bends and rings.
-            self.motion.x += 0.20 * (target_x - self.motion.x)
-            self.motion.y += 0.20 * (target_y - self.motion.y)
+            # Faster target response; retain enough smoothing to suppress jitter.
+            self.motion.x += 0.34 * (target_x - self.motion.x)
+            self.motion.y += 0.34 * (target_y - self.motion.y)
             target_strength = clamp(fraction * 9.0)
-            self.motion.strength += 0.40 * (target_strength - self.motion.strength)
+            self.motion.strength += 0.55 * (target_strength - self.motion.strength)
         return self.motion
 
 
@@ -150,7 +150,7 @@ class Runtime:
         camera = comp.op("camera")
         if camera is None or not bool(camera.par.active.eval()):
             return False
-        if self.frame_no % 6 != 0:
+        if self.frame_no % 2 != 0:
             return True
         small = comp.op("camera_small")
         try:
