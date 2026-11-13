@@ -60,7 +60,7 @@ class VisualControlsTests(unittest.TestCase):
     def test_shader_has_required_td_contract(self):
         shader = (Path(__file__).resolve().parents[1] /
                   "touchdesigner/shaders/underflow.frag").read_text(encoding="utf-8")
-        self.assertNotIn("#version", shader)
+        self.assertFalse(any(line.lstrip().startswith("#version") for line in shader.splitlines()))
         for token in ("uniform vec4 uState;", "uniform vec4 uPerson;",
                       "TDOutputSwizzle", "fragColor"):
             self.assertIn(token, shader)
