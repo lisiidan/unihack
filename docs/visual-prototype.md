@@ -92,15 +92,18 @@ If the camera is off, a moving synthetic presence demonstrates the effect.
 
 ## Timișoara city visual (current branch)
 
-The primary visual is now a luminous, winding depiction of Canalul Bega:
-shorelines, current lines, water reflections, and three abstract crossing
-signals. **This is an artistic schematic, NOT an OSM/GIS river map** and the
+The primary visual is a new illuminated urban atlas: a continuous, wide
+Bega canal, contrasted banks, procedural city blocks, weather-driven water
+reflections, faint building outlines, and three abstract crossing signals. **This is an artistic schematic, NOT an OSM/GIS river map** and the
 crossings do not represent surveyed bridge locations.
 
-The output also contains two Text TOPs:
-- city_title: TIMIȘOARA / UNDERFLOW + CANALUL BEGA.
-- data_label: LIVE / MODELED, DEMO / SYNTHETIC, or STALE, European AQI,
-  wind, rainfall and the data provider's *reading time* in UTC.
+The output contains four Text TOPs with additive compositing (fixing
+an opaque-source layering issue in older versions):
+- city_title: prominent TIMIȘOARA title.
+- city_subtitle: UNDERFLOW / BEGA, THE INVISIBLE CITY.
+- data_label: LIVE / MODELED, DEMO / SYNTHETIC, STALE, or WAITING,
+  European AQI, wind, rainfall, provider timestamps, and CAMS attribution.
+- footer_label: coordinates and an explicit ARTISTIC SCHEMATIC disclaimer.
 
 An absent measurement is displayed as "--", never fabricated as zero.
 Open-Meteo air quality is a CAMS model, not a sensor on that bridge.
@@ -133,8 +136,8 @@ Important: Demo mode changes the labels to DEMO / SYNTHETIC. If no gateway
 is running the display says WAITING FOR DATA, not LIVE. Use only one gateway
 process at a time (demo OR live) sending to UDP port 7001.
 
-If the two Text TOPs are not rendered correctly, inspect city_title,
-data_label and their output parameters. Check the GLSL TOP Info DAT
+If typography is missing, inspect city_title, city_subtitle, data_label
+and footer_label. All use additive compositing (operand=add). Check the GLSL TOP Info DAT
 for shader compilation errors. Tested in GitHub CI for Python behavior,
 but requires local TouchDesigner runtime validation.
 
@@ -157,3 +160,23 @@ but requires local TouchDesigner runtime validation.
 
 User tests + projection calibration + refinement of camera feedback.
 Avoid adding unrelated features before obtaining a working scene.
+
+## What success looks like
+
+The OUT view should show a clearly defined turquoise Bega ribbon across a
+procedural city atlas; three bright bridge-like crossings; the large title
+TIMIȘOARA in the top-left; live/model/demo status and readings at the upper
+right; and a small location/source disclaimer along the bottom. Motion makes
+large ripples and a local wake, rather than only shoving dots apart.
+
+If OUT still displays the old composition, ensure you updated the checked
+out feature branch (git branch --show-current), ran git pull --ff-only,
+then reran touchdesigner/install.py in Textport.
+
+If OUT is a red-blue checkerboard, check the GLSL TOP Info DAT:
+
+    print(op('/project1/UNDERFLOW/environment_glsl_info').text)
+
+The CI only verifies Python behavior and static shader contracts; it does NOT
+run the GPU shader on your TouchDesigner version. A screenshot of the actual
+OUT view is the acceptance check.
